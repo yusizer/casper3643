@@ -65,7 +65,9 @@ It hits all three Casper pillars:
 - 14/14 OdraVM unit + wiring tests green (`cargo odra test`) — access-control + negative
   compliance-gate + full-stack wiring coverage.
 - 12 optimized WASM contracts built; 11 deployed on Casper testnet (package hashes in
-  `deploy_hashes.sh`; deployer `account-hash-341e9b…`, funded on testnet)
+  `deploy_hashes.sh`; deployer `account-hash-341e9b…`, funded on testnet). **The testnet
+  deployment is the initial build; the repo's hardened source (C1–C5, M2–M5) ships on
+  mainnet — see Limitations.**
 - TypeScript agent + web layers typecheck clean (`tsc --noEmit`)
 - **Live demo: `cd agent && npm run demo`** — 3-specialist quorum fans out (x402 paid data
   feeds), each agent signs the canonical attestation digest (secp256k1, verified on-chain by
@@ -89,6 +91,11 @@ It hits all three Casper pillars:
 - The 3 specialist signatures in the testnet demo are produced by the deployer key (one PEM)
   — identical under deterministic ECDSA. Production uses distinct per-agent keys
   (`AGENT_*_KEY`).
+- **Per-vote signature binding.** `record_verdict` verifies each vote's signature against the
+  attestation-level canonical digest (subject ‖ verdict ‖ confidence ‖ reasoning_hash ‖
+  evidence_hash), not a per-vote digest. A signer therefore attests the shared verdict, not
+  her individual decision/confidence — a prototype limitation; production binds each vote's
+  signature to its own per-vote fields (decision, confidence, agent_pk, payment_tx_hash).
 - **Contract hardening in source vs testnet deployment.** The repo source includes
   production-hardening fixes over the initial testnet deployment: the claim digest now binds
   the investor wallet (`keccak256(wallet ‖ topic ‖ data)`, cross-investor replay protection),

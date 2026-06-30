@@ -198,14 +198,14 @@ modules, authorize agent): `bash scripts/wire.sh` inside the Docker builder.
 
 ## Status
 
-- ✅ Phase 1 — Odra contracts (10 modules) written, 14/14 OdraVM tests green, 10 optimized
+- ✅ Phase 1 — Odra contracts (12 modules) written, 14/14 OdraVM tests green, 12 optimized
   WASM contracts built
 - ✅ Phase 2/3 — agent layer: x402 client + 3 specialists + orchestrator + attestation
   submitter (canonical digest + secp256k1 sign-votes + casper-js-sdk on-chain submit) +
   sign-votes; `tsc --noEmit` clean
 - ✅ Phase 4 — dashboard (Casper Wallet connect, mint, register identity, live quorum,
   attestation explorer, reputation) + `/quorum` + `/api/*` endpoints; `tsc --noEmit` clean
-- ✅ Phase 5 — 10 contracts deployed on Casper testnet (package hashes in `deploy_hashes.sh`);
+- ✅ Phase 5 — 11 contracts deployed on Casper testnet (package hashes in `deploy_hashes.sh`);
   repo public at https://github.com/yusizer/casper3643
 - ⏳ Live demo run + demo video + DoraHacks BUIDL submit + community vote
 
