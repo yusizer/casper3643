@@ -2,8 +2,12 @@
  * Casper Wallet connection — uses the Casper Wallet browser extension provider
  * (window.casperwallet) directly. The CSPR.click SDK is not on npm, so the dashboard
  * talks to the wallet provider the CSPR.click skill documents: requestConnection,
- * getActivePublicKey, sign. The connected public key is used to sign deploys to the
- * deployed Casper3643 contracts.
+ * getActivePublicKey, sign.
+ *
+ * NOTE: the connected public key is used for read-only identity / display in the
+ * dashboard. Write actions (mint, register_identity, record_verdict) are built and signed
+ * server-side by the orchestrator key via the agent backend (/api/*), NOT by the browser
+ * wallet — the Casper Wallet extension's `sign()` is message-signing, not deploy-signing.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

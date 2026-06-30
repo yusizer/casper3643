@@ -26,11 +26,17 @@ export interface AttestationView {
 
 export async function getAttestations(): Promise<AttestationView[]> {
   const pkg = (process.env.ATTESTATION_REGISTRY_PACKAGE || "").replace(/^hash-/, "");
+  const token = process.env.CSPR_CLOUD_ACCESS_TOKEN;
   if (!pkg) return [];
   try {
     // CSPR.cloud contract-events endpoint (best-effort; shape varies by revision).
     const url = `${CSPR_CLOUD}/contract-events?contract_package_hash=hash-${pkg}&limit=50`;
-    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
     if (!res.ok) return [];
     const data = (await res.json()) as { data?: unknown[] };
     const rows = Array.isArray(data.data) ? data.data : [];

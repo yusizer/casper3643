@@ -27,7 +27,7 @@ import { DECISION_BYTE, TallyResult, Verdict } from "./verdict.js";
 
 config();
 
-const { CLValue, Args, ContractCallBuilder, PrivateKey, PublicKey, KeyAlgorithm, RpcClient } =
+const { CLValue, Args, ContractCallBuilder, PrivateKey, PublicKey, KeyAlgorithm, RpcClient, HttpHandler } =
   casperSdk;
 
 /** 32-byte hash as a hex string (no 0x). */
@@ -112,7 +112,7 @@ export function hashEvidence(refs: string[]): Hash {
   return Buffer.from(keccak_256(enc)).toString("hex");
 }
 
-function confidenceToBps(c: number): number {
+export function confidenceToBps(c: number): number {
   return Math.max(0, Math.min(10000, Math.round(c * 10000)));
 }
 
@@ -179,8 +179,9 @@ function bytesContainer(b: Uint8Array): Uint8Array {
 export function serializeAgentVote(v: AgentVote): Uint8Array {
   const agent = hexToBytes(v.agent_address); // Address = AccountHash(32)
   if (agent.length !== 32) throw new Error(`AgentVote.agent_address must be 32 bytes, got ${agent.length}`);
-  const pk = hexToBytes(v.agent_pk); // PublicKey: algo byte + 32 raw
-  if (pk.length !== 33) throw new Error(`AgentVote.agent_pk must be 33 bytes (algo|32), got ${pk.length}`);
+  const pk = hexToBytes(v.agent_pk); // PublicKey: secp256k1 = algo(1)+33 compressed = 34; ed25519 = 33
+  if (pk.length !== 33 && pk.length !== 34)
+    throw new Error(`AgentVote.agent_pk must be 33/34 bytes (algo|key), got ${pk.length}`);
   const sig = hexToBytes(v.signature);
   const pay = hexToBytes(v.payment_tx_hash || "");
   return Buffer.concat([
@@ -282,7 +283,7 @@ export async function submitAttestation(att: ComplianceAttestation): Promise<str
   tx.setSignature(sig, pub);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rpc = new (RpcClient as any)(rpcUrl);
+  const rpc = new (RpcClient as any)(new (HttpHandler as any)(rpcUrl));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const put: any = await rpc.putTransaction(tx);
   const txHash: string =
@@ -293,15 +294,27 @@ export async function submitAttestation(att: ComplianceAttestation): Promise<str
     "";
   if (!txHash) throw new Error(`submitAttestation: no transaction hash in putTransaction response: ${JSON.stringify(put)}`);
 
-  // Poll for finality (~15s on testnet), then surface any execution error.
-  await sleep(15_000);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const info: any = await rpc.getTransactionByTransactionHash(txHash);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const exec: any = info?.result?.execution_info?.execution_result?.Version2 || info?.execution_result;
-  const err = exec?.error_message;
-  if (err) throw new Error(`submitAttestation: execution failed: ${err}`);
-
+  // Poll for finality (testnet ~15-30s) until execution_result is available; surface any
+  // execution error. If the RPC never exposes execution_result within the window, the deploy
+  // was still accepted (putTransaction returned a tx hash), so return it with a warning
+  // rather than failing the demo — the hash is verifiable on testnet.cspr.live.
+  const deadline = Date.now() + 90_000;
+  while (Date.now() < deadline) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const info: any = await rpc.getTransactionByTransactionHash(txHash);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const exec: any =
+      info?.result?.execution_info?.execution_result?.Version2 ||
+      info?.result?.execution_info?.execution_result ||
+      info?.execution_result;
+    if (exec) {
+      const err = exec.error_message;
+      if (err) throw new Error(`submitAttestation: execution failed: ${err}`);
+      return txHash;
+    }
+    await sleep(3_000);
+  }
+  console.warn(`[attest] tx ${txHash} not finalized via RPC within 90s — verify on testnet.cspr.live`);
   return txHash;
 }
 

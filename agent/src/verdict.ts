@@ -61,7 +61,7 @@ export function tally(votes: Verdict[]): TallyResult {
   if (highConfReject) {
     return {
       verdict: Decision.REJECT,
-      confidence: Math.max(...votes.filter((v) => v.decision === Decision.REJECT).map((v) => v.confidence)),
+      confidence: clamp(Math.max(...votes.filter((v) => v.decision === Decision.REJECT).map((v) => v.confidence))),
       tally_rule: "any_high_conf_reject",
       votes,
     };

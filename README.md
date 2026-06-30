@@ -106,15 +106,25 @@ docker run --rm -v "$PWD":/workspace -w /workspace casper3643-builder cargo odra
 
 ```bash
 cd agent
-cp .env.example .env   # fill keys, OPENAI_API_KEY, facilitator, payee
+cp .env.example .env   # fill keys (OPENAI_API_KEY + OPENAI_BASE_URL, CSPR_CLOUD_ACCESS_TOKEN,
+                       # FACILITATOR_API_KEY, orchestrator key path, deployed package hashes)
 npm install
 
-# Terminal 1: x402 facilitator (self-host on testnet, or use hosted x402-facilitator.cspr.cloud)
-# Terminal 2: paid data-feed server
+# Terminal 1: x402 facilitator (use hosted https://x402-facilitator.cspr.cloud + CSPR_CLOUD_ACCESS_TOKEN)
+# Terminal 2: paid data-feed server (also hosts /quorum + /api/* for the dashboard)
 npm run data-feed
-# Terminal 3: end-to-end demo (3 agents pay, vote, tally, attest)
+# Terminal 3: end-to-end demo (3 agents pay, vote, tally, sign, attest on Casper)
 npm run demo
 ```
+
+The specialist LLM is called through the OpenAI SDK against any OpenAI-compatible endpoint.
+By default `.env` points at **NVIDIA NIM** (`OPENAI_BASE_URL=https://integrate.api.nvidia.com/v1`,
+`LLM_MODEL=nvidia/llama-3.1-nemotron-70b-instruct`); unset `OPENAI_BASE_URL` and set
+`LLM_MODEL=gpt-4o-mini` to use OpenAI directly. See [`docs/demo-walkthrough.md`](docs/demo-walkthrough.md)
+for the annotated demo script + dashboard walkthrough.
+
+Post-deploy contract wiring (allowlist country, claim topic, trusted issuer, bind compliance
+modules, authorize agent): `bash scripts/wire.sh` inside the Docker builder.
 
 ---
 
@@ -122,17 +132,35 @@ npm run demo
 
 1. **Issue** a regulated RWA token (tokenized real-estate unit) on Casper testnet.
 2. **Onboard investor**: the sanctions/KYC agent (a Trusted Issuer) verifies identity and
-   signs a KYC claim onto the investor's ONCHAINID → `is_verified` = true.
+   signs a KYC claim onto the investor's ONCHAINID → `is_verified` = true. (Contract supports
+   `add_claim` with issuer-signature verification; the CLI demo records the verdict on-chain
+   and logs the onboarding intent — see Limitations.)
 3. **Transfer gate**: a transfer to a non-verified wallet or a non-allowlisted country is
    reverted on-chain by the SecurityToken's compliance check.
-4. **Compliance Quorum**: 3 specialist agents independently audit the asset — each pays
-   (x402, WCSPR) for its data feed, returns a structured verdict; the orchestrator tallies
-   (2/3 supermajority, safety-first). Verdict + reasoning hash + 3 agent signatures + 3
-   payment tx hashes are attested on Casper (`VerdictAttested` event) — Verifiable AI.
+4. **Compliance Quorum (live on testnet)**: 3 specialist agents independently audit the
+   asset — each pays (x402, WCSPR) for its data feed, returns a structured verdict; the
+   orchestrator tallies (2/3 supermajority, safety-first). Verdict + reasoning hash + 3
+   agent signatures + 3 payment tx hashes are attested on Casper (`VerdictAttested` event) —
+   Verifiable AI.
 5. **Autonomous enforcement**: on a REJECT/sanctions hit, the agent calls the agent-only
-   `freeze`/`pause` entry points — no human in the loop.
+   `freeze`/`pause` entry points — no human in the loop. (Contract exposes `freeze`/`pause`;
+   the demo records the REJECT verdict on-chain and logs the enforcement intent.)
 6. **Reputation**: each agent's verdict is logged; when the real-world outcome resolves,
-   its Brier score updates and a wrong confident call slashes its stake.
+   its Brier score updates and a wrong confident call slashes its stake. (`AgentReputation`
+   contract capability; shown in the dashboard pending an on-chain view read.)
+
+## Limitations (honest)
+
+- Specialist data feeds are mocked (real x402 payment path, static data behind the paywall).
+  Settlement requires WCSPR at `ASSET_PACKAGE`; if unfunded, specialists fall back to
+  safety-first VERIFY_FURTHER and the verdict still attests on-chain.
+- `add_claim` (KYC → `is_verified`) and `freeze` (autonomous enforcement) are contract-level
+  + unit/wiring-tested but not invoked end-to-end in the CLI demo (verdict + signatures are
+  recorded on-chain; enforcement intent is logged).
+- `AgentReputation` Brier/slash is a contract capability; the dashboard reputation table
+  shows representative values pending an on-chain view read.
+- The 3 specialist signatures in the testnet demo share the deployer key (identical under
+  deterministic ECDSA). Production uses distinct per-agent keys (`AGENT_*_KEY`).
 
 ---
 
@@ -162,11 +190,16 @@ npm run demo
 
 ## Status
 
-- ✅ Phase 1 — Odra contracts (all 9 modules) written
-- ✅ Phase 2/3 — agent layer (x402 + 3 specialists + orchestrator + attestation) written
-- ⏳ Phase 1 — compile/test in the Docker image, fix Odra API signatures
-- ⏳ Phase 4 — CSPR.click dashboard
-- ⏳ Phase 5 — deploy to Casper testnet, demo video, DoraHacks BUIDL submit
+- ✅ Phase 1 — Odra contracts (10 modules) written, 14/14 OdraVM tests green, 10 optimized
+  WASM contracts built
+- ✅ Phase 2/3 — agent layer: x402 client + 3 specialists + orchestrator + attestation
+  submitter (canonical digest + secp256k1 sign-votes + casper-js-sdk on-chain submit) +
+  sign-votes; `tsc --noEmit` clean
+- ✅ Phase 4 — dashboard (Casper Wallet connect, mint, register identity, live quorum,
+  attestation explorer, reputation) + `/quorum` + `/api/*` endpoints; `tsc --noEmit` clean
+- ✅ Phase 5 — 10 contracts deployed on Casper testnet (package hashes in `deploy_hashes.sh`);
+  repo public at https://github.com/yusizer/casper3643
+- ⏳ Live demo run + demo video + DoraHacks BUIDL submit + community vote
 
 ## License
 

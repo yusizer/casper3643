@@ -6,7 +6,6 @@
   "type": "module",
   "scripts": {
     "data-feed": "tsx src/data-feed-server.ts",
-    "facilitator": "tsx src/facilitator.ts",
     "sanctions": "tsx src/specialists/sanctions.ts",
     "valuation": "tsx src/specialists/valuation.ts",
     "legal": "tsx src/specialists/legal.ts",

@@ -30,6 +30,9 @@ const chainID = process.env.CAIP2_CHAIN_ID as Network; // casper:casper-test
 const assetPackage = process.env.ASSET_PACKAGE!.replace(/^hash-/, "");
 const port = parseInt(process.env.DATA_FEED_PORT || "4021", 10);
 
+// CSPR.cloud facilitator expects a bare access key in Authorization (NOT `Bearer` — that
+// is rejected by /supported with 401 "access key not found"). /settle additionally requires
+// the payee to hold WCSPR at ASSET_PACKAGE; insufficient balance → settlement-failure 402.
 const auth = facilitatorAPIKey ? { Authorization: facilitatorAPIKey } : undefined;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const facilitatorClient = new HTTPFacilitatorClient({
@@ -87,24 +90,73 @@ app.use(
 
 app.get("/sanctions", (req, res) => {
   const addr = String(req.query.addr || "");
+  const name = String(req.query.name || "Acme Holdings Ltd.");
   const hit = addr.toLowerCase().includes("0xbad");
   res.json({
-    address: addr,
-    sanctioned: hit,
-    source: "OFAC SDN (mock)",
-    pep: false,
-    timestamp: Date.now(),
+    identity: {
+      name,
+      wallet: addr,
+      country: "GB",
+      country_code: 826,
+      registration_number: "GB-04206937",
+      incorporation_date: "2019-03-14",
+      id_document: "passport-GB4820194",
+      kyc_verified: !hit,
+      kyc_completed_at: "2026-06-15",
+    },
+    sanctions_check: {
+      ofac_sdn_clear: !hit,
+      eu_consolidated_clear: !hit,
+      uk_ofsi_clear: !hit,
+      pep: false,
+      adverse_media: false,
+      sanctioned: hit,
+      matched_entries: hit ? ["OFAC-SDN-12345"] : [],
+    },
+    screening_provider: "ComplyAdvantage (mock)",
+    checked_at: new Date().toISOString(),
   });
 });
 
 app.get("/valuation", (req, res) => {
   const asset = String(req.query.asset || "");
-  res.json({ asset, usd: 1234.56, comparables: 4, as_of: Date.now() });
+  res.json({
+    asset,
+    currency: "USD",
+    estimated_value: 1_250_000,
+    valuation_method: "comparable_sales",
+    sales_comparables: [
+      { id: "comp-1", address: "12 King St", sale_price: 1_220_000, sale_date: "2026-05-02", distance_m: 180 },
+      { id: "comp-2", address: "8 Queen Ave", sale_price: 1_280_000, sale_date: "2026-05-19", distance_m: 320 },
+      { id: "comp-3", address: "3 Crown Rd", sale_price: 1_245_000, sale_date: "2026-06-01", distance_m: 410 },
+      { id: "comp-4", address: "21 Castle Ln", sale_price: 1_260_000, sale_date: "2026-06-11", distance_m: 550 },
+    ],
+    comparables_count: 4,
+    within_target_range: true,
+    as_of: new Date().toISOString(),
+  });
 });
 
 app.get("/legal", (req, res) => {
   const j = String(req.query.j || "EU");
-  res.json({ jurisdiction: j, risk: "medium", liens: 0, chain_breaks: 0, timestamp: Date.now() });
+  res.json({
+    jurisdiction: j,
+    asset: String(req.query.asset || ""),
+    title: {
+      status: "clear",
+      registered_owner: "Acme Holdings Ltd.",
+      land_registry_ref: "GB-LR-48201-77",
+      last_transfer: "2026-04-12",
+      chain_of_title_complete: true,
+    },
+    liens: [],
+    liens_count: 0,
+    encumbrances: 0,
+    chain_breaks: 0,
+    legal_opinion: "clear_title_confirmed",
+    risk: "low",
+    checked_at: new Date().toISOString(),
+  });
 });
 
 // --- Compliance Quorum endpoint (called by the web dashboard's "Run Compliance Quorum") ---

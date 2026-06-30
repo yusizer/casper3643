@@ -56,13 +56,17 @@ function loadPriv(pemPath: string): typeof PrivateKey {
 export function agentIdentity(pemPath: string): { agent_pk: string; agent_address: string } {
   const priv = loadPriv(pemPath);
   const pub = priv.publicKey;
-  const algoByte = pub.cryptoAlg ?? KeyAlgorithm.SECP256K1;
-  const agentPk = toHex(new Uint8Array([algoByte, ...pub.bytes()]));
+  // Casper PublicKey.bytes() = algo byte + raw key: secp256k1 = 1 + 33 (compressed) = 34,
+  // ed25519 = 1 + 32 = 33. This is the exact bytesrepr Odra's PublicKey uses.
+  const pkBytes: Uint8Array = pub.bytes();
+  if (pkBytes.length !== 33 && pkBytes.length !== 34) {
+    throw new Error(`agentIdentity: expected 33/34-byte public key, got ${pkBytes.length}`);
+  }
   // pub.accountHash() -> AccountHash; .toBytes() -> 32 raw bytes.
   const ahBytes: Uint8Array = pub.accountHash().toBytes
     ? pub.accountHash().toBytes()
     : pub.accountHash().bytes();
-  return { agent_pk: agentPk, agent_address: toHex(ahBytes) };
+  return { agent_pk: toHex(pkBytes), agent_address: toHex(ahBytes) };
 }
 
 /**

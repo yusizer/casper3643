@@ -25,6 +25,7 @@ import {
   hashReasoning,
   hashEvidence,
   canonicalDigest,
+  confidenceToBps,
 } from "./attestation-submit.js";
 import { signVote, agentIdentity } from "./sign-votes.js";
 
@@ -78,7 +79,7 @@ async function main() {
     process.env.AGENT_LEGAL_KEY || "./keys/secret_key.pem",
   ];
   const verdictByte = Decision.APPROVE === result.verdict ? 0 : Decision.REJECT === result.verdict ? 2 : 1;
-  const confBps = Math.round(result.confidence * 10000);
+  const confBps = confidenceToBps(result.confidence);
   const votesWithSigs = result.votes.map((v, i) => {
     const sig = signVote(asset.asset_id, verdictByte, confBps, reasoningHash, evidenceHash, agentKeys[i]);
     return { vote: v, ...sig };
@@ -102,10 +103,17 @@ async function main() {
 
   if (result.verdict === Decision.APPROVE) {
     console.log(
-      "\n=> APPROVE: agents sign KYC claims as Trusted Issuers -> is_verified=true -> RWA transfer allowed.",
+      "\n=> APPROVE: in the full flow, the agent (as a Trusted Issuer) would sign a KYC claim and " +
+        "call IdentityRegistry::add_claim -> is_verified=true -> RWA transfer allowed. " +
+        "(Contract supports add_claim with issuer-signature verification; this demo records the " +
+        "verdict + signatures on-chain and logs the enforcement intent.)",
     );
   } else if (result.verdict === Decision.REJECT) {
-    console.log("\n=> REJECT: agent autonomously freezes the investor wallet (agent-only freeze).");
+    console.log(
+      "\n=> REJECT: in the full flow, the agent would call SecurityToken::freeze (agent-only, " +
+        "owner-gated add_agent) on the investor wallet — autonomous enforcement, no human in the loop. " +
+        "(Contract exposes freeze; this demo records the verdict on-chain and logs the intent.)",
+    );
   } else {
     console.log("\n=> VERIFY_FURTHER: escalation — no transfer, human review required.");
   }

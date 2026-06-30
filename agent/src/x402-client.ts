@@ -59,7 +59,21 @@ export async function paidCall(keyPath: string, endpoint: string): Promise<PaidC
 
   // 1) Request -> 402 -> sign -> retry with PAYMENT-SIGNATURE -> settle -> 200
   const res = await fetchWithPayment(endpoint, { method: "GET" });
-  const data = await res.json();
+  const text = await res.text();
+  if (process.env.X402_DEBUG === "1") {
+    console.error(`[x402] ${endpoint} -> status=${res.status} bodyLen=${text.length} head=${text.slice(0, 240)}`);
+  }
+  // A 402 here means the paid data was not delivered (e.g. settlement failed due to
+  // insufficient WCSPR balance, or the facilitator /settle was rejected). We still pull the
+  // payment tx hash from the PAYMENT-RESPONSE header below (settle may have happened on-chain
+  // even when the resource response is 402), so the attestation can carry proof-of-payment;
+  // the empty body is passed through and the LLM's safety-first prompt yields VERIFY_FURTHER.
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
 
   // 2) Pull the on-chain settle tx hash out of the response headers (for attestation).
   const payResp = new x402HTTPClient(client).getPaymentSettleResponse(
