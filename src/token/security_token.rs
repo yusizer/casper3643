@@ -132,8 +132,10 @@ impl SecurityToken {
         });
     }
 
-    /// Owner mints to a verified recipient, gated by compliance (mint treated as a transfer
-    /// from the minter/owner for compliance-module purposes).
+    /// Owner mints to a verified recipient. Mint is a transfer from the zero/mint source,
+    /// NOT from the minter's identity, so the compliance country check on the source is
+    /// skipped (the owner need not be a registered investor to mint). The recipient must
+    /// still be verified.
     pub fn mint(&mut self, to: &Address, amount: &U256) {
         let caller = self.env().caller();
         self.ownable.assert_owner(&caller);
@@ -141,11 +143,7 @@ impl SecurityToken {
         if !self.identity.is_verified(to) {
             self.env().revert(StError::NotVerified);
         }
-        if !self.compliance.can_transfer(&caller, to, amount) {
-            self.env().revert(StError::TransferNotAllowed);
-        }
         self.token.raw_mint(to, amount);
-        self.compliance.transferred(&caller, to, amount);
         self.env().emit_event(Transfer {
             from: None,
             to: Some(*to),
@@ -215,6 +213,12 @@ impl SecurityToken {
         self.agent_role.add_agent(agent);
     }
 
+    /// Owner removes an agent (revoke agent-only privileges, e.g. a compromised key).
+    pub fn remove_agent(&mut self, agent: Address) {
+        self.ownable.assert_owner(&self.env().caller());
+        self.agent_role.remove_agent(agent);
+    }
+
     pub fn is_frozen(&self, wallet: &Address) -> bool {
         self.frozen.get_or_default(wallet)
     }
@@ -260,7 +264,11 @@ impl SecurityToken {
 
 impl SecurityToken {
     fn assert_can_transfer(&self, from: &Address, to: &Address, amount: &U256) {
-        if !self.identity.is_verified(from) || !self.identity.is_verified(to) {
+        let owner = self.ownable.get_owner();
+        // The issuer/owner is exempt from the is_verified(from) gate so they can distribute
+        // the initial supply without first registering as an investor. The recipient is still
+        // verified and compliance still applies to both sides.
+        if (from != &owner && !self.identity.is_verified(from)) || !self.identity.is_verified(to) {
             self.env().revert(StError::NotVerified);
         }
         if !self.compliance.can_transfer(from, to, amount) {

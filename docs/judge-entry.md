@@ -62,18 +62,18 @@ It hits all three Casper pillars:
 
 ## Verifiable proof
 
-- 14 OdraVM unit + wiring tests green (`cargo odra test`) — access-control + negative
-  compliance-gate + wiring coverage (positive KYC-claim→verified→transfer path is a known
-  test-coverage gap; see Limitations).
+- 14/14 OdraVM unit + wiring tests green (`cargo odra test`) — access-control + negative
+  compliance-gate + full-stack wiring coverage.
 - 12 optimized WASM contracts built; 11 deployed on Casper testnet (package hashes in
   `deploy_hashes.sh`; deployer `account-hash-341e9b…`, funded on testnet)
 - TypeScript agent + web layers typecheck clean (`tsc --noEmit`)
 - **Live demo: `cd agent && npm run demo`** — 3-specialist quorum fans out (x402 paid data
   feeds), each agent signs the canonical attestation digest (secp256k1, verified on-chain by
   `AttestationRegistry::record_verdict`), and the verdict is submitted on Casper. Recorded
-  testnet transactions: `073320d2…`, `bf93c9dd…`, `8670f31f…` (verify on testnet.cspr.live).
-  The canonical digest is `keccak256(subject ‖ [verdict] ‖ confidence_be32 ‖ reasoning_hash ‖
-  evidence_hash)`, matching the contract's `canonical_hash` exactly.
+  testnet transactions: `073320d2…`, `bf93c9dd…`, `8670f31f…`, `b7e72bce…` (verify on
+  testnet.cspr.live). The canonical digest is `keccak256(subject ‖ [verdict] ‖
+  confidence_be32 ‖ reasoning_hash ‖ evidence_hash)`, matching the contract's
+  `canonical_hash` exactly.
 
 ## Limitations (honest)
 
@@ -89,6 +89,16 @@ It hits all three Casper pillars:
 - The 3 specialist signatures in the testnet demo are produced by the deployer key (one PEM)
   — identical under deterministic ECDSA. Production uses distinct per-agent keys
   (`AGENT_*_KEY`).
+- **Contract hardening in source vs testnet deployment.** The repo source includes
+  production-hardening fixes over the initial testnet deployment: the claim digest now binds
+  the investor wallet (`keccak256(wallet ‖ topic ‖ data)`, cross-investor replay protection),
+  `record_verdict` enforces the 3-agent quorum + voter-membership on-chain, `mint` skips the
+  compliance source-gate (mint is from the zero source, not the minter's identity), the
+  issuer/owner is exempt from `is_verified(from)` on transfer (initial distribution),
+  `slash_pct` is bounded to `0..=100`, `list_agents` filters removed agents, and
+  `SecurityToken::remove_agent` is exposed. 14/14 tests green on the hardened source. The
+  testnet deployment is the initial build (CSPR budget did not allow a redeploy); a mainnet
+  deploy would ship the hardened source.
 
 ## Differentiation (vs. the field)
 

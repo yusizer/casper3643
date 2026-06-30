@@ -11,7 +11,7 @@
 //! cross-call while preserving the ERC-3643 `isVerified` semantics. The AI compliance agent
 //! acts as a Trusted Issuer: it signs a KYC/AML claim and submits it here.
 
-use odra::casper_types::bytesrepr::Bytes;
+use odra::casper_types::bytesrepr::{Bytes, ToBytes};
 use odra::casper_types::PublicKey;
 use odra::prelude::*;
 use odra_modules::access::Ownable;
@@ -211,7 +211,7 @@ impl IdentityRegistry {
             // The issuer must be the caller (or the owner on behalf, in a relay model).
             self.ownable.assert_owner(&caller);
         }
-        let digest = Self::claim_digest(topic, &data);
+        let digest = Self::claim_digest(&wallet, topic, &data);
         let msg = Bytes::from(digest.to_vec());
         if !self.env().verify_signature(&msg, &signature, &issuer_pk) {
             self.env().revert(IrError::InvalidSignature);
@@ -332,10 +332,13 @@ impl IdentityRegistry {
 }
 
 impl IdentityRegistry {
-    /// keccak256(topic_be || data) — claim digest the issuer signs.
-    fn claim_digest(topic: u32, data: &Bytes) -> [u8; 32] {
+    /// keccak256(wallet || topic_be || data) — claim digest the issuer signs.
+    /// The wallet is bound into the digest so a signature issued for one investor cannot be
+    /// replayed to verify a different wallet (cross-investor claim-replay protection).
+    fn claim_digest(wallet: &Address, topic: u32, data: &Bytes) -> [u8; 32] {
         use sha3::{Digest, Keccak256};
         let mut h = Keccak256::default();
+        h.update(wallet.to_bytes().unwrap_or_default());
         h.update(topic.to_be_bytes());
         h.update(data);
         let out = h.finalize();

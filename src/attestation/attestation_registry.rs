@@ -72,6 +72,8 @@ pub enum ArError {
     BadSignature = 702,
     NoVotes = 703,
     AgentPkMismatch = 704,
+    MinQuorum = 705,
+    NotRegisteredAgent = 706,
 }
 
 /// Verifiable AI attestation registry.
@@ -98,9 +100,17 @@ impl AttestationRegistry {
         if att.votes.is_empty() {
             self.env().revert(ArError::NoVotes);
         }
+        // Enforce the 3-specialist quorum on-chain (the off-chain tally is not trusted blindly).
+        if (att.votes.len() as u32) < 3 {
+            self.env().revert(ArError::MinQuorum);
+        }
         let digest = self.canonical_hash(&att);
         let msg = Bytes::from(digest.to_vec());
         for v in &att.votes {
+            // Every vote must come from a registered agent.
+            if !self.agents.is_agent(&v.agent) {
+                self.env().revert(ArError::NotRegisteredAgent);
+            }
             if Address::from(v.agent_pk.clone()) != v.agent {
                 self.env().revert(ArError::AgentPkMismatch);
             }

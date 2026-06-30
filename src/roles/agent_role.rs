@@ -71,9 +71,10 @@ impl AgentRole {
         self.agents.get_or_default(agent)
     }
 
-    /// Enumerable list of agent addresses (for off-chain audit / UI).
+    /// Enumerable list of agent addresses (for off-chain audit / UI). Filters out agents
+    /// that have been removed (the list is append-only; membership is the source of truth).
     pub fn list_agents(&self) -> Vec<Address> {
-        self.agents_list.iter().collect()
+        self.agents_list.iter().filter(|a| self.is_agent(a)).collect()
     }
 }
 

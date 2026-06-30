@@ -63,6 +63,7 @@ pub enum RepError {
     NotOwner = 800,
     NotFound = 801,
     NoStake = 802,
+    InvalidSlashPct = 803,
 }
 
 /// Brier-score reputation contract.
@@ -80,6 +81,10 @@ impl AgentReputation {
     pub fn init(&mut self, slash_pct: u32) {
         let caller = self.env().caller();
         self.ownable.init(caller);
+        // slash_pct is a percentage; bound it to 0..=100 to avoid stake underflow in slash math.
+        if slash_pct > 100 {
+            self.env().revert(RepError::InvalidSlashPct);
+        }
         self.slash_pct.set(slash_pct);
     }
 

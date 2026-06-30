@@ -8,7 +8,7 @@
 //! Trusted Issuer: it evaluates an investor and submits a signed claim here, after which
 //! `IdentityRegistry::is_verified` returns true and the investor may hold the security token.
 
-use odra::casper_types::bytesrepr::Bytes;
+use odra::casper_types::bytesrepr::{Bytes, ToBytes};
 use odra::casper_types::PublicKey;
 use odra::prelude::*;
 
@@ -186,12 +186,13 @@ impl OnchainId {
 }
 
 impl OnchainId {
-    /// keccak256(topic_be || data) — claim digest the issuer signs.
-    /// (Prototype: identity-binding via the OnchainId address is deferred; the signature
-    /// still proves the issuer authorised this (topic, data) claim.)
+    /// keccak256(self_address || topic_be || data) — claim digest the issuer signs.
+    /// The OnchainId's own address (the identity) is bound into the digest so a signature
+    /// issued for one identity cannot be replayed against another.
     fn claim_digest(&self, topic: u32, data: &Bytes) -> [u8; 32] {
         use sha3::{Digest, Keccak256};
         let mut h = Keccak256::default();
+        h.update(self.env().self_address().to_bytes().unwrap_or_default());
         h.update(topic.to_be_bytes());
         h.update(data);
         let out = h.finalize();

@@ -161,6 +161,14 @@ modules, authorize agent): `bash scripts/wire.sh` inside the Docker builder.
   shows representative values pending an on-chain view read.
 - The 3 specialist signatures in the testnet demo share the deployer key (identical under
   deterministic ECDSA). Production uses distinct per-agent keys (`AGENT_*_KEY`).
+- **Contract hardening in source vs testnet deployment.** The repo source includes
+  production-hardening fixes over the initial testnet deployment: claim digest binds the
+  investor wallet (cross-investor replay protection), `record_verdict` enforces the 3-agent
+  quorum + voter-membership on-chain, `mint` skips the compliance source-gate, the issuer is
+  exempt from `is_verified(from)` on transfer, `slash_pct` is bounded, `list_agents` filters
+  removed agents, `SecurityToken::remove_agent` is exposed. 14/14 tests green on the hardened
+  source. The testnet deployment is the initial build; a mainnet deploy would ship the
+  hardened source.
 
 ---
 
