@@ -298,7 +298,7 @@ export async function submitAttestation(att: ComplianceAttestation): Promise<str
   // execution error. If the RPC never exposes execution_result within the window, the deploy
   // was still accepted (putTransaction returned a tx hash), so return it with a warning
   // rather than failing the demo — the hash is verifiable on testnet.cspr.live.
-  const deadline = Date.now() + 90_000;
+  const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const info: any = await rpc.getTransactionByTransactionHash(txHash);
@@ -314,7 +314,7 @@ export async function submitAttestation(att: ComplianceAttestation): Promise<str
     }
     await sleep(3_000);
   }
-  console.warn(`[attest] tx ${txHash} not finalized via RPC within 90s — verify on testnet.cspr.live`);
+  console.warn(`[attest] tx ${txHash} not finalized via RPC within 30s — verify on testnet.cspr.live`);
   return txHash;
 }
 

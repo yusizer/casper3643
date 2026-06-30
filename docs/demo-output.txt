@@ -1,0 +1,51 @@
+
+> casper3643-agent@0.1.0 demo
+> tsx src/demo.ts
+
+=== Casper3643 Compliance Quorum demo ===
+asset: rwa-real-estate-unit-42
+fanning out 3 specialist agents (parallel, isolated)...
+
+
+=== Quorum verdict ===
+decision: VERIFY_FURTHER | confidence: 0.167
+tally rule: disagreement_safety_default
+votes:
+  - VERIFY_FURTHER conf=0.50 payment_tx=3cbe06fc5e82843358004243b7078aff7ab257864b6ac97d0b7a2279c5bab82f
+    reasoning: Insufficient sanctions screening data available for Acme Holdings Ltd.
+  - VERIFY_FURTHER conf=0.00 payment_tx=5d22939f4f07d770d9be100f3f4be043864ecdfea29250317b1798739ec1eaea
+    reasoning: No comparable sales data available for RealEstate-Unit-42
+  - VERIFY_FURTHER conf=0.00 payment_tx=a7b641c832febf70036115eb32c14c2746f739f97bfd1bcac1375546df92f2fb
+    reasoning: No data provided to establish chain-of-title or verify encumbrance status
+
+canonical digest (verified on-chain by AttestationRegistry): b9f0be1fbc0b22938bef4aabcdd3733e1b498fc3a5feeea49e40a990ecd87589
+agent identities: [
+  {
+    agent_pk: '020280eecbdb2bcd47e97183c284a409c37c2e43364603654d8eb14bd1e67fdcf78a',
+    agent_address: '341e9b97a43f1381474aa7f4eb9c067179298bbdca9cf4002641bcb628cc4ff4'
+  },
+  {
+    agent_pk: '020280eecbdb2bcd47e97183c284a409c37c2e43364603654d8eb14bd1e67fdcf78a',
+    agent_address: '341e9b97a43f1381474aa7f4eb9c067179298bbdca9cf4002641bcb628cc4ff4'
+  },
+  {
+    agent_pk: '020280eecbdb2bcd47e97183c284a409c37c2e43364603654d8eb14bd1e67fdcf78a',
+    agent_address: '341e9b97a43f1381474aa7f4eb9c067179298bbdca9cf4002641bcb628cc4ff4'
+  }
+]
+
+=== On-chain attestation (Verifiable AI) ===
+{
+  "subject": "rwa-real-estate-unit-42",
+  "verdict": 1,
+  "confidence": 1667,
+  "reasoning_hash": "2966f5c7d737aaacb1336150b6ea30799dc355a5df208fd894c7fbeecb9bc8b3",
+  "evidence_hash": "6d46600b6830bbc2af0b76d19b1b595c81aebd1608aff62b35e341840f2a0452",
+  "votes": 3,
+  "tally_rule": "disagreement_safety_default",
+  "timestamp": 1782823457
+}
+[attest] tx f8107f4f83c296cd84968d66bb1b7fd421ff412091741b57fb7a398da060d870 not finalized via RPC within 90s — verify on testnet.cspr.live
+attestation recorded on Casper testnet, tx: f8107f4f83c296cd84968d66bb1b7fd421ff412091741b57fb7a398da060d870
+
+=> VERIFY_FURTHER: escalation — no transfer, human review required.
