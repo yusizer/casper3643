@@ -1,0 +1,35 @@
+Casper3643 is the first ERC-3643-compliant permissioned token suite on Casper, with a
+Verifiable AI compliance layer.
+
+Three specialist AI agents independently audit a real-world asset. Each one pays, per query,
+for its own data feed via x402 micropayments. They vote without seeing each other's verdict,
+so there's no anchoring bias. The orchestrator tallies a two-of-three supermajority,
+safety-first: on insufficient data it escalates rather than approves.
+
+Let me run the live demo. Three agents fan out in parallel — sanctions, valuation, and
+legal-provenance. Each payment you see is a real Casper settle transaction in WCSPR. The
+agents return independent, structured, safety-first verdicts.
+
+Now the Verifiable AI part. The verdict, a hash of the reasoning trace, a hash of the
+evidence, three agent signatures, and three x402 payment transaction hashes are attested
+on-chain on Casper. The contract recomputes the exact canonical digest — keccak256 of the
+subject, verdict, confidence, reasoning and evidence hashes — and verifies every agent
+signature against it.
+
+Recorded on Casper testnet. AttestationRegistry record_verdict verified all three signatures
+on-chain and emitted VerdictAttested. This closes the agent accountability gap: why the agent
+decided, what it paid, and what it received — all on-chain.
+
+On the dashboard, I connect a Casper Wallet, mint the security token to an investor, register
+the investor identity, and run the live quorum in the browser. The compliance gate reverts
+any transfer to a non-verified wallet or a non-allowlisted country. On a sanctions hit, the
+agent autonomously freezes the wallet — no human in the loop. Agent reputation is tracked with
+a Brier score, and a wrong confident call slashes stake.
+
+Why this wins. Casper's Manifest makes compliant security tokens — ERC-3643 — its most
+detailed initiative, Tier-1, buildable today. No other submission builds the actual
+permissioned-token standard on Casper. We add the agentic layer the roadmap calls for:
+agents that transact, not chat.
+
+Ten contracts deployed on Casper testnet. Fourteen OdraVM tests green. Live Verifiable AI
+attestations you can verify right now on the explorer. Casper3643.
