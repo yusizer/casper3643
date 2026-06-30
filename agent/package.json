@@ -1,0 +1,40 @@
+{
+  "name": "casper3643-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-agent Compliance Quorum: 3 specialist A2A agents audit an RWA, pay per-query via x402, vote without anchoring bias, and attest the verdict on Casper.",
+  "type": "module",
+  "scripts": {
+    "data-feed": "tsx src/data-feed-server.ts",
+    "facilitator": "tsx src/facilitator.ts",
+    "sanctions": "tsx src/specialists/sanctions.ts",
+    "valuation": "tsx src/specialists/valuation.ts",
+    "legal": "tsx src/specialists/legal.ts",
+    "quorum": "tsx src/orchestrator.ts",
+    "attest": "tsx src/attestation-submit.ts",
+    "sign-votes": "tsx src/sign-votes.ts",
+    "demo": "tsx src/demo.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@casper-ecosystem/casper-eip-712": "^1.2.1",
+    "@make-software/casper-x402": "^1.0.0",
+    "@noble/hashes": "^1.8.0",
+    "@x402/core": "^2.17.0",
+    "@x402/express": "^2.17.0",
+    "@x402/fetch": "^2.17.0",
+    "casper-js-sdk": "^5.0.12",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.67.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

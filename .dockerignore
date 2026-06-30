@@ -1,0 +1,10 @@
+target/
+wasm/
+.git/
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+keys/
+*.pem
+.env*

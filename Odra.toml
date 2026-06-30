@@ -1,0 +1,35 @@
+[[contracts]]
+fqn = "casper3643::roles::agent_role::AgentRole"
+
+[[contracts]]
+fqn = "casper3643::identity::claim_topics::ClaimTopicsRegistry"
+
+[[contracts]]
+fqn = "casper3643::identity::trusted_issuers::TrustedIssuersRegistry"
+
+[[contracts]]
+fqn = "casper3643::identity::identity_registry::IdentityRegistry"
+
+[[contracts]]
+fqn = "casper3643::identity::identity_registry::IdentityRegistryStorage"
+
+[[contracts]]
+fqn = "casper3643::identity::onchain_id::OnchainId"
+
+[[contracts]]
+fqn = "casper3643::compliance::modular_compliance::ModularCompliance"
+
+[[contracts]]
+fqn = "casper3643::compliance::country_allowlist::CountryAllowlist"
+
+[[contracts]]
+fqn = "casper3643::compliance::max_holding::MaxHolding"
+
+[[contracts]]
+fqn = "casper3643::token::security_token::SecurityToken"
+
+[[contracts]]
+fqn = "casper3643::attestation::attestation_registry::AttestationRegistry"
+
+[[contracts]]
+fqn = "casper3643::reputation::agent_reputation::AgentReputation"
