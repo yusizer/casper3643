@@ -207,7 +207,8 @@ modules, authorize agent): `bash scripts/wire.sh` inside the Docker builder.
   attestation explorer, reputation) + `/quorum` + `/api/*` endpoints; `tsc --noEmit` clean
 - ✅ Phase 5 — 11 contracts deployed on Casper testnet (package hashes in `deploy_hashes.sh`);
   repo public at https://github.com/yusizer/casper3643
-- ⏳ Live demo run + demo video + DoraHacks BUIDL submit + community vote
+- ✅ Demo video published on the DoraHacks BUIDL page (unchanged)
+- ⏳ Optional BUIDL page text alignment + community vote
 
 ## Testnet Proof
 

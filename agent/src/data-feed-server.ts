@@ -59,8 +59,25 @@ const casperScheme = new ExactCasperScheme()
     return wcsp("1000000000");
   });
 
+const corsOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173,http://127.0.0.1:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const app = express();
-app.use(cors({ origin: "*", exposedHeaders: ["PAYMENT-REQUIRED", "PAYMENT-RESPONSE"] }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow non-browser clients (no Origin header) and the local dashboard dev server.
+      if (!origin || corsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+    exposedHeaders: ["PAYMENT-REQUIRED", "PAYMENT-RESPONSE"],
+  }),
+);
 app.use(express.json());
 
 app.use(

@@ -4,39 +4,29 @@ Use this list before the Casper Agentic Buildathon final-round review.
 
 ## GitHub repository settings
 
-These items must be configured in the GitHub UI, not just in the codebase:
-
-- Repository visibility: `Public`
-- Description: `ERC-3643 permissioned token suite + multi-agent Verifiable AI compliance quorum on Casper`
-- Website: add your DoraHacks BUIDL URL or demo URL
-- Topics:
-  - `casper-blockchain`
-  - `casper-network`
-  - `buildathon`
-  - `erc-3643`
-  - `rwa`
-  - `agentic-ai`
-  - `odra`
-  - `verifiable-ai`
+- [x] Repository visibility: `Public`
+- [x] Description set
+- [x] Website: DoraHacks BUIDL URL
+- [x] Topics: `casper-blockchain`, `casper-network`, `buildathon`, `erc-3643`, `rwa`, `agentic-ai`, `odra`, `verifiable-ai`
 
 ## GitHub security settings
 
-- Enable CodeQL alerts
-- Enable Dependabot alerts
-- Enable Dependabot security updates
-- Confirm CI workflows are green
-- Confirm secret scanning is enabled if available on your plan
+- [x] CodeQL workflow added
+- [x] Dependabot alerts enabled
+- [x] Dependabot security updates enabled
+- [x] Secret scan workflow added
+- [ ] Confirm CI workflow is green on `master`
 
 ## DoraHacks BUIDL page
 
-Make sure the BUIDL page includes:
+Copy from `docs/dorahacks-buidl-page.md` into the existing BUIDL page. Do **not** change the already-published demo video link.
 
-- A short MVP description focused on what is live today
-- Contract package hashes from `deploy_hashes.sh`
-- At least one attestation tx hash and several sample payment tx hashes
-- A concise test plan copied from `README.md` / `docs/demo-walkthrough.md`
-- A demo video link
-- Honest limitations, phrased clearly but confidently
+- [ ] Short MVP description
+- [ ] Contract package hashes from `deploy_hashes.sh`
+- [ ] Sample attestation + payment tx hashes
+- [ ] Concise test plan
+- [x] Demo video already published on BUIDL
+- [ ] Honest limitations
 
 ## Repo artifacts now present
 
