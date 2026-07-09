@@ -8,12 +8,16 @@ Cargo.lock
 .env
 .env.local
 .env.testnet
+**/.env
+**/.env.local
+**/.env.testnet
 keys/
 casper-wallet-secret_keys/
 __pycache__/
 *.pyc
 node_modules/
 dist/
+*.tsbuildinfo
 .venv/
 venv/
 *.wasm

@@ -209,6 +209,41 @@ modules, authorize agent): `bash scripts/wire.sh` inside the Docker builder.
   repo public at https://github.com/yusizer/casper3643
 - ⏳ Live demo run + demo video + DoraHacks BUIDL submit + community vote
 
+## Testnet Proof
+
+### Contract package hashes
+
+The current Casper Testnet deployment uses deployer
+`account-hash-341e9b97a43f1381474aa7f4eb9c067179298bbdca9cf4002641bcb628cc4ff4`.
+Package hashes are versioned in `deploy_hashes.sh`, including:
+
+- `SecurityToken`: `hash-902c8706f025f30122903368c3a8d8271b1088d825221eb9244a41e3fb9cc701`
+- `IdentityRegistry`: `hash-288495fe43bf4953f3e292b4d9412c39627de35351d22b6af5b9ce490ff107d2`
+- `AttestationRegistry`: `hash-6e6d3e60b0cd9cb2427be623f3d38e350a7eaa9280477e01009bf3824a180a13`
+- `AgentReputation`: `hash-98383423950f3852019052bcbc6ff44a95681eb06dffd45dd07c41a505d71831`
+
+### Sample Testnet transactions
+
+These hashes are referenced by the live demo assets in `docs/` and can be verified in
+`https://testnet.cspr.live`:
+
+- x402 payment tx: `3cbe06fc5e82843358004243b7078aff7ab257864b6ac97d0b7a2279c5bab82f`
+- x402 payment tx: `5d22939f4f07d770d9be100f3f4be043864ecdfea29250317b1798739ec1eaea`
+- x402 payment tx: `a7b641c832febf70036115eb32c14c2746f739f97bfd1bcac1375546df92f2fb`
+- attestation tx: `f8107f4f83c296cd84968d66bb1b7fd421ff412091741b57fb7a398da060d870`
+
+### Judge test steps
+
+1. Start the paid data-feed server: `cd agent && npm install && npm run data-feed`
+2. In a second terminal, run the live quorum demo: `cd agent && npm run demo`
+3. Copy the printed `attestation recorded on Casper testnet, tx: ...` hash into
+   `https://testnet.cspr.live`
+4. Optionally launch the dashboard with `cd web && npm install && npm run dev` and walk through
+   the mint, identity registration, quorum, attestation explorer, and reputation screens
+
+The full video script and narrated walkthrough live in `docs/demo-video-script.md` and
+`docs/demo-walkthrough.md`.
+
 ## License
 
 Apache-2.0.
